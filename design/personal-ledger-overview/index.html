@@ -1,0 +1,2505 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta
+      name="description"
+      content="记米粒账本概览静态原型：本月收支、预算进度、最近流水、支出构成与近 6 个月趋势。"
+    />
+    <title>记米粒 · 账本概览（原型）</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --color-background: 255 255 255;
+        --color-foreground: 15 23 42;
+        --color-surface: 255 255 255;
+        --color-surface-muted: 248 250 252;
+        --color-border: 226 232 240;
+        --color-muted: 100 116 139;
+
+        --primary-50: 239 246 255;
+        --primary-100: 219 234 254;
+        --primary-200: 191 219 254;
+        --primary-400: 96 165 250;
+        --primary-500: 59 130 246;
+        --primary-600: 37 99 235;
+        --primary-700: 29 78 216;
+
+        --secondary-50: 248 250 252;
+        --secondary-100: 241 245 249;
+        --secondary-500: 100 116 139;
+        --accent-50: 238 242 255;
+        --accent-500: 99 102 241;
+        --accent-600: 79 70 229;
+
+        --success: 16 185 129;
+        --success-soft: 236 253 245;
+        --danger: 239 68 68;
+        --danger-soft: 254 242 242;
+        --warning: 245 158 11;
+        --warning-soft: 255 251 235;
+        --info: 14 165 233;
+        --info-soft: 240 249 255;
+
+        --chart-income: #3b82f6;
+        --chart-expense: #ef4444;
+        --chart-grid: #e2e8f0;
+        --chart-label: #94a3b8;
+
+        --radius-card: 12px;
+        --radius-control: 8px;
+        --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+        --shadow-float: 0 24px 64px rgba(15, 23, 42, 0.22);
+        --font-sans: 'Inter var', 'Inter', ui-sans-serif, system-ui, -apple-system,
+          BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+        --font-numeric: 'Inter', 'SF Pro Display', 'DIN Alternate', 'PingFang SC', sans-serif;
+      }
+
+      html[data-theme='dark'] {
+        color-scheme: dark;
+        --color-background: 2 6 23;
+        --color-foreground: 248 250 252;
+        --color-surface: 15 23 42;
+        --color-surface-muted: 2 6 23;
+        --color-border: 30 41 59;
+        --color-muted: 148 163 184;
+
+        --primary-50: 23 37 84;
+        --primary-100: 30 58 138;
+        --primary-200: 30 64 175;
+        --primary-400: 96 165 250;
+        --primary-500: 96 165 250;
+        --primary-600: 147 197 253;
+        --primary-700: 191 219 254;
+
+        --secondary-50: 15 23 42;
+        --secondary-100: 30 41 59;
+        --secondary-500: 148 163 184;
+        --accent-50: 30 27 75;
+        --accent-500: 129 140 248;
+        --accent-600: 165 180 252;
+
+        --success: 52 211 153;
+        --success-soft: 6 78 59;
+        --danger: 248 113 113;
+        --danger-soft: 127 29 29;
+        --warning: 251 191 36;
+        --warning-soft: 120 53 15;
+        --info: 56 189 248;
+        --info-soft: 8 47 73;
+
+        --chart-income: #60a5fa;
+        --chart-expense: #f87171;
+        --chart-grid: #1e293b;
+        --chart-label: #94a3b8;
+
+        --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.3);
+        --shadow-float: 0 24px 64px rgba(0, 0, 0, 0.55);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font-sans);
+        font-size: 14px;
+        line-height: 1.5;
+        color: rgb(var(--color-foreground));
+        background: rgb(var(--color-background));
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      h1,
+      h2,
+      h3,
+      p,
+      ul,
+      ol {
+        margin: 0;
+      }
+
+      ul,
+      ol {
+        padding: 0;
+        list-style: none;
+      }
+
+      img,
+      svg {
+        display: block;
+      }
+
+      :focus-visible {
+        outline: 2px solid rgb(var(--primary-500));
+        outline-offset: 2px;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      .app {
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+        background: rgb(var(--color-background));
+      }
+
+      /* ---------- Sidebar ---------- */
+      .sidebar {
+        display: none;
+        flex-direction: column;
+        width: 256px;
+        flex-shrink: 0;
+        height: 100vh;
+        overflow-y: auto;
+        background: rgb(var(--color-surface-muted));
+        border-right: 1px solid rgb(var(--color-border));
+      }
+
+      .sidebar__brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 18px 18px 14px;
+      }
+
+      .sidebar__brand img {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+      }
+
+      .sidebar__brand strong {
+        display: block;
+        font-size: 17px;
+        font-weight: 750;
+        letter-spacing: -0.02em;
+      }
+
+      .sidebar__brand span {
+        display: block;
+        margin-top: 1px;
+        color: rgb(var(--color-muted));
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .sidebar__section {
+        padding: 12px 12px 0;
+      }
+
+      .sidebar__section-title {
+        padding: 0 8px 6px;
+        color: rgb(var(--color-muted));
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+      }
+
+      .sidebar__nav {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 9px 10px;
+        border: none;
+        border-radius: 8px;
+        color: rgb(var(--color-foreground) / 0.72);
+        background: transparent;
+        font-size: 13px;
+        font-weight: 550;
+        text-align: left;
+        transition:
+          background 0.16s ease,
+          color 0.16s ease;
+      }
+
+      .nav-item:hover {
+        background: rgb(var(--color-surface));
+        color: rgb(var(--color-foreground));
+      }
+
+      .nav-item.is-active {
+        color: rgb(var(--primary-600));
+        background: rgb(var(--primary-50));
+        font-weight: 700;
+      }
+
+      .nav-item svg {
+        width: 19px;
+        height: 19px;
+        flex-shrink: 0;
+      }
+
+      .nav-item__icon--indigo {
+        color: rgb(var(--accent-500));
+      }
+      .nav-item__icon--green {
+        color: rgb(var(--success));
+      }
+      .nav-item__icon--purple {
+        color: rgb(var(--accent-500));
+      }
+      .nav-item__icon--red {
+        color: rgb(var(--danger));
+      }
+      .nav-item__icon--pink {
+        color: #ec4899;
+      }
+      .nav-item__icon--blue {
+        color: rgb(var(--primary-500));
+      }
+
+      .sidebar__footer {
+        margin-top: auto;
+        padding: 14px 12px 16px;
+        border-top: 1px solid rgb(var(--color-border));
+      }
+
+      .user-card {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px;
+        border-radius: 10px;
+        background: rgb(var(--color-surface));
+        border: 1px solid rgb(var(--color-border));
+      }
+
+      .avatar {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        color: #fff;
+        background: linear-gradient(145deg, rgb(var(--primary-500)), rgb(var(--accent-500)));
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .user-card__text {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .user-card__text strong {
+        display: block;
+        font-size: 12px;
+        font-weight: 650;
+      }
+
+      .user-card__text span {
+        display: block;
+        color: rgb(var(--color-muted));
+        font-size: 10px;
+      }
+
+      /* ---------- Main / header ---------- */
+      .main {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        min-width: 0;
+        height: 100vh;
+        overflow-y: auto;
+      }
+
+      .header {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        height: 64px;
+        flex-shrink: 0;
+        padding: 0 16px;
+        background: rgb(var(--color-surface) / 0.92);
+        border-bottom: 1px solid rgb(var(--color-border));
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
+
+      .header__left,
+      .header__right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .header__brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .header__brand img {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+      }
+
+      .header__brand strong {
+        overflow: hidden;
+        font-size: 15px;
+        font-weight: 750;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .header__title {
+        color: rgb(var(--color-muted));
+        font-size: 12px;
+        font-weight: 550;
+        white-space: nowrap;
+      }
+
+      .icon-button {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        color: rgb(var(--color-foreground) / 0.65);
+        background: transparent;
+        transition:
+          background 0.16s ease,
+          color 0.16s ease;
+      }
+
+      .icon-button:hover {
+        color: rgb(var(--color-foreground));
+        background: rgb(var(--color-surface-muted));
+      }
+
+      .icon-button svg {
+        width: 19px;
+        height: 19px;
+      }
+
+      .header__avatar {
+        display: grid;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        color: #fff;
+        background: linear-gradient(145deg, rgb(var(--primary-500)), rgb(var(--accent-500)));
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .content {
+        width: 100%;
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 16px 14px 96px;
+      }
+
+      /* ---------- Page head ---------- */
+      .page-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .page-head__eyebrow {
+        margin-bottom: 4px;
+        color: rgb(var(--primary-600));
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+      }
+
+      .page-head h1 {
+        font-size: 25px;
+        font-weight: 750;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+      }
+
+      .page-head__subtitle {
+        margin-top: 4px;
+        color: rgb(var(--color-muted));
+        font-size: 12px;
+      }
+
+      .page-head__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .month-switcher {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        padding: 3px;
+        border: 1px solid rgb(var(--color-border));
+        border-radius: 999px;
+        background: rgb(var(--color-surface));
+        box-shadow: var(--shadow-card);
+      }
+
+      .month-switcher__label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 8px;
+        font-size: 12px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      .month-switcher__label svg {
+        width: 14px;
+        height: 14px;
+        color: rgb(var(--primary-500));
+      }
+
+      .month-switcher .icon-button {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+      }
+
+      .month-switcher .icon-button:disabled {
+        opacity: 0.3;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 9px 14px;
+        border: 1px solid transparent;
+        border-radius: var(--radius-control);
+        font-size: 12px;
+        font-weight: 650;
+        white-space: nowrap;
+        transition:
+          transform 0.16s ease,
+          background 0.16s ease,
+          box-shadow 0.16s ease;
+      }
+
+      .button svg {
+        width: 15px;
+        height: 15px;
+      }
+
+      .button--primary {
+        color: #fff;
+        background: linear-gradient(135deg, rgb(var(--primary-500)), rgb(var(--primary-600)));
+        box-shadow: 0 6px 16px rgb(var(--primary-500) / 0.24);
+      }
+
+      .button--primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px rgb(var(--primary-500) / 0.3);
+      }
+
+      .button--secondary {
+        border-color: rgb(var(--color-border));
+        color: rgb(var(--color-foreground));
+        background: rgb(var(--color-surface));
+      }
+
+      .button--secondary:hover {
+        background: rgb(var(--color-surface-muted));
+      }
+
+      .button--ghost {
+        padding: 5px 8px;
+        color: rgb(var(--primary-600));
+        background: transparent;
+      }
+
+      .button--ghost:hover {
+        background: rgb(var(--primary-50));
+      }
+
+      .button--danger {
+        color: rgb(var(--danger));
+        background: rgb(var(--danger-soft));
+      }
+
+      .prototype-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 9px;
+        border-radius: 999px;
+        color: rgb(var(--primary-600));
+        background: rgb(var(--primary-50));
+        font-size: 10px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      /* ---------- Cards / grid ---------- */
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+
+      .summary-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 14px;
+        border: 1px solid rgb(var(--color-border));
+        border-radius: var(--radius-card);
+        background: rgb(var(--color-surface));
+        box-shadow: var(--shadow-card);
+      }
+
+      .summary-card__icon {
+        display: grid;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+        border-radius: 10px;
+      }
+
+      .summary-card__icon svg {
+        width: 19px;
+        height: 19px;
+      }
+
+      .summary-card__icon--blue {
+        color: rgb(var(--primary-600));
+        background: rgb(var(--primary-50));
+      }
+      .summary-card__icon--red {
+        color: rgb(var(--danger));
+        background: rgb(var(--danger-soft));
+      }
+      .summary-card__icon--indigo {
+        color: rgb(var(--accent-600));
+        background: rgb(var(--accent-50));
+      }
+      .summary-card__icon--muted {
+        color: rgb(var(--color-muted));
+        background: rgb(var(--color-surface-muted));
+      }
+
+      .summary-card__body {
+        min-width: 0;
+      }
+
+      .summary-card__label {
+        color: rgb(var(--color-muted));
+        font-size: 11px;
+        font-weight: 550;
+      }
+
+      .summary-card__value {
+        margin-top: 3px;
+        overflow: hidden;
+        font-family: var(--font-numeric);
+        font-size: 21px;
+        font-weight: 750;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .summary-card__hint {
+        margin-top: 2px;
+        color: rgb(var(--color-muted));
+        font-size: 10px;
+      }
+
+      .text-income {
+        color: rgb(var(--primary-600));
+      }
+      .text-expense {
+        color: rgb(var(--danger));
+      }
+      .text-muted {
+        color: rgb(var(--color-muted));
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: start;
+        gap: 14px;
+      }
+
+      .card {
+        min-width: 0;
+        padding: 16px;
+        border: 1px solid rgb(var(--color-border));
+        border-radius: var(--radius-card);
+        background: rgb(var(--color-surface));
+        box-shadow: var(--shadow-card);
+      }
+
+      .card-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .card-head h2 {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+
+      .card-head p {
+        margin-top: 2px;
+        color: rgb(var(--color-muted));
+        font-size: 10px;
+      }
+
+      .card-head__actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+
+      .legend {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: rgb(var(--color-muted));
+        font-size: 10px;
+        white-space: nowrap;
+      }
+
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .legend-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .legend-dot--income {
+        background: var(--chart-income);
+      }
+
+      .legend-dot--expense {
+        background: var(--chart-expense);
+      }
+
+      /* ---------- Budget ---------- */
+      .budget-card__top {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .budget-card__remaining {
+        color: rgb(var(--primary-600));
+        font-family: var(--font-numeric);
+        font-size: 25px;
+        font-weight: 750;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .budget-card__remaining small {
+        color: rgb(var(--color-muted));
+        font-family: var(--font-sans);
+        font-size: 10px;
+        font-weight: 550;
+      }
+
+      .budget-card__percent {
+        padding: 3px 8px;
+        border-radius: 999px;
+        color: rgb(var(--primary-600));
+        background: rgb(var(--primary-50));
+        font-size: 10px;
+        font-weight: 650;
+      }
+
+      .progress {
+        height: 8px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgb(var(--color-surface-muted));
+      }
+
+      .progress__bar {
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgb(var(--primary-400)), rgb(var(--primary-600)));
+        transition: width 0.3s ease;
+      }
+
+      .progress__bar--over {
+        background: linear-gradient(90deg, rgb(var(--warning)), rgb(var(--danger)));
+      }
+
+      .budget-card__meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 8px;
+        color: rgb(var(--color-muted));
+        font-size: 10px;
+      }
+
+      .budget-card__meta strong {
+        color: rgb(var(--color-foreground));
+        font-family: var(--font-numeric);
+        font-weight: 650;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .budget-card__note {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 12px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        color: rgb(var(--color-muted));
+        background: rgb(var(--color-surface-muted));
+        font-size: 10px;
+      }
+
+      .budget-card__note strong {
+        color: rgb(var(--primary-600));
+        font-weight: 650;
+      }
+
+      /* ---------- Recent flows ---------- */
+      .flow-list {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .flow-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 9px 2px;
+        border: none;
+        border-bottom: 1px solid rgb(var(--color-border));
+        color: inherit;
+        background: transparent;
+        text-align: left;
+        transition: background 0.16s ease;
+      }
+
+      .flow-row:last-child {
+        border-bottom: none;
+      }
+
+      .flow-row:hover {
+        background: rgb(var(--color-surface-muted));
+      }
+
+      .category-badge {
+        display: grid;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        border-radius: 9px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .flow-row__main {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 1px;
+        min-width: 0;
+      }
+
+      .flow-row__title {
+        overflow: hidden;
+        font-size: 12px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .flow-row__meta {
+        overflow: hidden;
+        color: rgb(var(--color-muted));
+        font-size: 10px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .flow-row__amount {
+        flex-shrink: 0;
+        font-family: var(--font-numeric);
+        font-size: 12px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      .flow-row__amount--income {
+        color: rgb(var(--primary-600));
+      }
+
+      .flow-row__chevron {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+        color: rgb(var(--color-muted));
+      }
+
+      /* ---------- Breakdown ---------- */
+      .breakdown-layout {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .donut {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 158px;
+        height: 158px;
+        flex-shrink: 0;
+        margin: 0 auto;
+      }
+
+      .donut svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      .donut__center {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1px;
+        pointer-events: none;
+      }
+
+      .donut__center span {
+        color: rgb(var(--color-muted));
+        font-size: 9px;
+      }
+
+      .donut__center strong {
+        font-family: var(--font-numeric);
+        font-size: 15px;
+        font-weight: 750;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .breakdown-legend {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 150px;
+      }
+
+      .breakdown-legend li {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 11px;
+      }
+
+      .breakdown-legend__name {
+        flex: 1;
+        overflow: hidden;
+        color: rgb(var(--color-foreground) / 0.72);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .breakdown-legend__share {
+        min-width: 30px;
+        color: rgb(var(--color-muted));
+        font-size: 9px;
+        text-align: right;
+      }
+
+      .breakdown-legend__value {
+        min-width: 62px;
+        color: rgb(var(--color-foreground));
+        font-family: var(--font-numeric);
+        font-size: 10px;
+        font-weight: 650;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        white-space: nowrap;
+      }
+
+      /* ---------- Trend ---------- */
+      .trend-chart {
+        width: 100%;
+      }
+
+      .trend-chart svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+      }
+
+      .trend-label {
+        fill: var(--chart-label);
+        font-family: var(--font-sans);
+        font-size: 10px;
+      }
+
+      /* ---------- Empty ---------- */
+      .empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 22px 14px;
+        border: 1px dashed rgb(var(--color-border));
+        border-radius: 10px;
+        background: rgb(var(--color-surface-muted));
+        text-align: center;
+      }
+
+      .empty__icon {
+        display: grid;
+        place-items: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        color: rgb(var(--primary-600));
+        background: rgb(var(--primary-50));
+      }
+
+      .empty__icon svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      .empty strong {
+        font-size: 12px;
+        font-weight: 650;
+      }
+
+      .empty p {
+        max-width: 240px;
+        color: rgb(var(--color-muted));
+        font-size: 10px;
+        line-height: 1.6;
+      }
+
+      .empty .button {
+        margin-top: 4px;
+      }
+
+      /* ---------- Bottom nav ---------- */
+      .bottom-nav {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 40;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        height: calc(64px + env(safe-area-inset-bottom));
+        padding: 4px 6px env(safe-area-inset-bottom);
+        background: rgb(var(--color-surface) / 0.96);
+        border-top: 1px solid rgb(var(--color-border));
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+      }
+
+      .bottom-nav__item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        padding: 2px 0;
+        border: none;
+        border-radius: 8px;
+        color: rgb(var(--color-muted));
+        background: transparent;
+        font-size: 9px;
+        font-weight: 550;
+      }
+
+      .bottom-nav__item svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      .bottom-nav__item.is-active {
+        color: rgb(var(--primary-600));
+        background: rgb(var(--primary-50));
+        font-weight: 700;
+      }
+
+      /* ---------- Modal ---------- */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: rgb(15 23 42 / 0.5);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        animation: fade-in 0.18s ease;
+      }
+
+      .modal-backdrop[hidden] {
+        display: none;
+      }
+
+      .modal {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 440px;
+        max-height: 90vh;
+        overflow: hidden;
+        border: 1px solid rgb(var(--color-border));
+        border-radius: 14px;
+        background: rgb(var(--color-surface));
+        box-shadow: var(--shadow-float);
+        animation: pop-in 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      .modal__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 16px 18px 12px;
+        border-bottom: 1px solid rgb(var(--color-border));
+      }
+
+      .modal__eyebrow {
+        margin-bottom: 2px;
+        color: rgb(var(--primary-600));
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+      }
+
+      .modal__title {
+        font-size: 17px;
+        font-weight: 750;
+        letter-spacing: -0.02em;
+      }
+
+      .modal__body {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px 18px;
+        overflow-y: auto;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .field-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .field label {
+        color: rgb(var(--color-foreground) / 0.72);
+        font-size: 11px;
+        font-weight: 650;
+      }
+
+      .field input,
+      .field select,
+      .field textarea {
+        width: 100%;
+        padding: 9px 10px;
+        border: 1px solid rgb(var(--color-border));
+        border-radius: var(--radius-control);
+        outline: none;
+        color: rgb(var(--color-foreground));
+        background: rgb(var(--color-surface));
+        font-size: 12px;
+        transition:
+          border-color 0.16s ease,
+          box-shadow 0.16s ease;
+      }
+
+      .field input:focus,
+      .field select:focus,
+      .field textarea:focus {
+        border-color: rgb(var(--primary-500));
+        box-shadow: 0 0 0 3px rgb(var(--primary-500) / 0.14);
+      }
+
+      .field input[aria-invalid='true'] {
+        border-color: rgb(var(--danger));
+      }
+
+      .field textarea {
+        min-height: 64px;
+        resize: vertical;
+      }
+
+      .amount-input {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 1px solid rgb(var(--color-border));
+        border-radius: var(--radius-control);
+        background: rgb(var(--color-surface-muted));
+        transition:
+          border-color 0.16s ease,
+          box-shadow 0.16s ease;
+      }
+
+      .amount-input:focus-within {
+        border-color: rgb(var(--primary-500));
+        box-shadow: 0 0 0 3px rgb(var(--primary-500) / 0.14);
+      }
+
+      .amount-input span {
+        color: rgb(var(--color-muted));
+        font-size: 18px;
+        font-weight: 650;
+      }
+
+      .amount-input input {
+        flex: 1;
+        min-width: 0;
+        padding: 0;
+        border: none;
+        outline: none;
+        color: rgb(var(--color-foreground));
+        background: transparent;
+        font-family: var(--font-numeric);
+        font-size: 26px;
+        font-weight: 750;
+        letter-spacing: -0.02em;
+      }
+
+      .field-error {
+        color: rgb(var(--danger));
+        font-size: 10px;
+      }
+
+      .modal__footer {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 18px 16px;
+        border-top: 1px solid rgb(var(--color-border));
+      }
+
+      .modal__footer .button--primary {
+        flex: 1;
+      }
+
+      /* ---------- Toast ---------- */
+      .toast {
+        position: fixed;
+        bottom: calc(76px + env(safe-area-inset-bottom));
+        left: 50%;
+        z-index: 200;
+        max-width: calc(100vw - 40px);
+        padding: 9px 14px;
+        border-radius: 999px;
+        color: #fff;
+        background: rgb(15 23 42 / 0.92);
+        font-size: 11px;
+        font-weight: 550;
+        text-align: center;
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(-50%, 10px);
+        transition:
+          opacity 0.2s ease,
+          transform 0.2s ease;
+      }
+
+      .toast.is-visible {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      /* ---------- Mobile drawer ---------- */
+      .drawer-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 45;
+        display: none;
+        background: rgb(15 23 42 / 0.45);
+        backdrop-filter: blur(2px);
+      }
+
+      .drawer-backdrop.is-open {
+        display: block;
+      }
+
+      .sidebar--mobile {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 50;
+        display: flex;
+        transform: translateX(-100%);
+        transition: transform 0.22s ease;
+        box-shadow: 0 0 40px rgb(15 23 42 / 0.18);
+      }
+
+      .sidebar--mobile.is-open {
+        transform: translateX(0);
+      }
+
+      .sidebar__close {
+        margin-left: auto;
+      }
+
+      /* ---------- Animations ---------- */
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes pop-in {
+        from {
+          opacity: 0;
+          transform: scale(0.97) translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      /* ---------- Responsive ---------- */
+      @media (max-width: 719px) {
+        .summary-card {
+          flex-direction: column;
+          gap: 8px;
+          padding: 12px;
+        }
+
+        .summary-card__icon {
+          width: 32px;
+          height: 32px;
+        }
+
+        .summary-card__value {
+          font-size: 18px;
+        }
+      }
+
+      @media (min-width: 720px) {
+        .summary-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .card--wide {
+          grid-column: span 2;
+        }
+
+        .content {
+          padding: 20px 20px 40px;
+        }
+
+        .page-head h1 {
+          font-size: 29px;
+        }
+
+        .summary-card__value {
+          font-size: 23px;
+        }
+      }
+
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: flex;
+        }
+
+        .sidebar--mobile,
+        .drawer-backdrop,
+        .bottom-nav {
+          display: none !important;
+        }
+
+        .header {
+          padding: 0 24px;
+        }
+
+        .content {
+          padding: 24px 28px 48px;
+        }
+
+        .page-head {
+          margin-bottom: 20px;
+        }
+
+        .summary-grid,
+        .grid {
+          gap: 16px;
+          margin-bottom: 16px;
+        }
+
+        .card {
+          padding: 18px;
+        }
+
+        .header__brand {
+          display: none;
+        }
+
+        #menuButton {
+          display: none;
+        }
+
+        .header__title {
+          font-size: 13px;
+        }
+
+        .toast {
+          bottom: 28px;
+        }
+      }
+
+      @media (max-width: 380px) {
+        .field-row {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .summary-card__value {
+          font-size: 18px;
+        }
+
+        .page-head h1 {
+          font-size: 23px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" aria-label="侧栏导航">
+        <div class="sidebar__brand">
+          <img src="assets/logo.webp" alt="记米粒" />
+          <div>
+            <strong>记米粒</strong>
+            <span>Jimily</span>
+          </div>
+        </div>
+
+        <div class="sidebar__section">
+          <p class="sidebar__section-title">账本</p>
+          <nav class="sidebar__nav">
+            <button class="nav-item is-active" type="button" data-nav="概览" aria-current="page">
+              <svg class="nav-item__icon--blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
+              概览
+            </button>
+            <button class="nav-item" type="button" data-nav="Jimi 助手">
+              <svg class="nav-item__icon--indigo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.7-.8L3 21l1.9-4.3A8.4 8.4 0 1 1 21 11.5Z"/></svg>
+              Jimi 助手
+            </button>
+            <button class="nav-item" type="button" data-nav="账本日历">
+              <svg class="nav-item__icon--green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M3 10h18"/></svg>
+              账本日历
+            </button>
+            <button class="nav-item" type="button" data-nav="数据分析">
+              <svg class="nav-item__icon--purple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-3"/></svg>
+              数据分析
+            </button>
+            <button class="nav-item" type="button" data-nav="资金账户">
+              <svg class="nav-item__icon--green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/><path d="M16 15h2"/></svg>
+              资金账户
+            </button>
+            <button class="nav-item" type="button" data-nav="流水管理">
+              <svg class="nav-item__icon--green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/><path d="M17 18h3"/></svg>
+              流水管理
+            </button>
+            <button class="nav-item" type="button" data-nav="待收款">
+              <svg class="nav-item__icon--green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18v10H3z"/><path d="M3 7l9 6 9-6"/></svg>
+              待收款
+            </button>
+            <button class="nav-item" type="button" data-nav="预算管理">
+              <svg class="nav-item__icon--red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+              预算管理
+            </button>
+            <button class="nav-item" type="button" data-nav="类型管理">
+              <svg class="nav-item__icon--pink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+              类型管理
+            </button>
+          </nav>
+        </div>
+
+        <div class="sidebar__section">
+          <p class="sidebar__section-title">工具</p>
+          <nav class="sidebar__nav">
+            <button class="nav-item" type="button" data-nav="API 访问令牌">
+              <svg class="nav-item__icon--indigo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="3"/><path d="m10.5 12.5 8-8"/><path d="m16 7 2 2"/><path d="m18.5 4.5 2 2"/></svg>
+              API 访问令牌
+            </button>
+            <button class="nav-item" type="button" data-nav="接口文档">
+              <svg class="nav-item__icon--indigo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h10l4 4v14H5V3Z"/><path d="M15 3v4h4"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>
+              接口文档
+            </button>
+          </nav>
+        </div>
+
+        <div class="sidebar__footer">
+          <div class="user-card">
+            <span class="avatar">王</span>
+            <span class="user-card__text">
+              <strong>王琳</strong>
+              <span>个人账本</span>
+            </span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+        </div>
+      </aside>
+
+      <div class="main">
+        <header class="header">
+          <div class="header__left">
+            <button class="icon-button" type="button" id="menuButton" aria-label="打开菜单">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
+            </button>
+            <div class="header__brand">
+              <img src="assets/logo.webp" alt="" />
+              <strong>记米粒</strong>
+            </div>
+            <span class="header__title">个人账本</span>
+          </div>
+          <div class="header__right">
+            <button class="icon-button" type="button" id="themeButton" aria-label="切换深色模式">
+              <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m17.7 17.7 1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m4.9 19.1 1.4-1.4"/><path d="m17.7 6.3 1.4-1.4"/></svg>
+            </button>
+            <button class="icon-button" type="button" aria-label="通知" data-nav="通知">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+            </button>
+            <span class="header__avatar" aria-label="当前用户 王琳">王</span>
+          </div>
+        </header>
+
+        <main class="content">
+          <div class="page-head">
+            <div>
+              <p class="page-head__eyebrow">PERSONAL LEDGER</p>
+              <h1>账本概览</h1>
+              <p class="page-head__subtitle">一眼看清本月收支、预算与消费方向</p>
+            </div>
+            <div class="page-head__actions">
+              <span class="prototype-pill">原型预览 · Mock 数据</span>
+              <div class="month-switcher" aria-label="月份切换">
+                <button class="icon-button" type="button" id="prevMonth" aria-label="上个月">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                <span class="month-switcher__label">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M3 10h18"/></svg>
+                  <span id="monthLabel">2026年11月</span>
+                </span>
+                <button class="icon-button" type="button" id="nextMonth" aria-label="下个月">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+              </div>
+              <button class="button button--ghost" type="button" id="backToCurrent" hidden>回到本月</button>
+              <button class="button button--primary" type="button" data-action="add">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                记一笔
+              </button>
+            </div>
+          </div>
+
+          <section class="summary-grid" id="summaryGrid" aria-label="本月收支汇总"></section>
+
+          <div class="grid">
+            <section class="card" id="budgetCard" aria-label="本月预算"></section>
+
+            <section class="card" aria-label="最近流水">
+              <div class="card-head">
+                <div>
+                  <h2>最近流水</h2>
+                  <p id="recentSubtitle">本月最近 5 笔</p>
+                </div>
+                <div class="card-head__actions">
+                  <button class="button button--ghost" type="button" data-nav="查看全部流水">查看全部</button>
+                </div>
+              </div>
+              <div id="recentFlows"></div>
+            </section>
+
+            <section class="card" aria-label="支出构成">
+              <div class="card-head">
+                <div>
+                  <h2>支出构成</h2>
+                  <p>按分类聚合本月支出</p>
+                </div>
+                <button class="button button--ghost" type="button" data-nav="数据分析">更多分析</button>
+              </div>
+              <div id="breakdown"></div>
+            </section>
+
+            <section class="card" aria-label="近 6 个月趋势">
+              <div class="card-head">
+                <div>
+                  <h2>近 6 个月趋势</h2>
+                  <p>收入与支出按月对比</p>
+                </div>
+                <div class="legend">
+                  <span><i class="legend-dot legend-dot--income"></i>收入</span>
+                  <span><i class="legend-dot legend-dot--expense"></i>支出</span>
+                </div>
+              </div>
+              <div id="trend"></div>
+            </section>
+          </div>
+        </main>
+
+        <nav class="bottom-nav" aria-label="底部导航">
+          <button class="bottom-nav__item is-active" type="button" data-nav="概览" aria-current="page">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
+            概览
+          </button>
+          <button class="bottom-nav__item" type="button" data-nav="预算">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            预算
+          </button>
+          <button class="bottom-nav__item" type="button" data-nav="分析">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-3"/></svg>
+            分析
+          </button>
+          <button class="bottom-nav__item" type="button" data-nav="日历">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M3 10h18"/></svg>
+            日历
+          </button>
+          <button class="bottom-nav__item" type="button" data-nav="流水">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/><path d="M17 18h3"/></svg>
+            流水
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+    <aside class="sidebar sidebar--mobile" id="mobileSidebar" aria-label="移动端侧栏导航">
+      <div class="sidebar__brand">
+        <img src="assets/logo.webp" alt="记米粒" />
+        <div>
+          <strong>记米粒</strong>
+          <span>Jimily</span>
+        </div>
+        <button class="icon-button sidebar__close" type="button" id="closeMenu" aria-label="关闭菜单">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <div class="sidebar__section">
+        <p class="sidebar__section-title">账本</p>
+        <nav class="sidebar__nav">
+          <button class="nav-item is-active" type="button" data-nav="概览" aria-current="page">
+            <svg class="nav-item__icon--blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
+            概览
+          </button>
+          <button class="nav-item" type="button" data-nav="Jimi 助手">
+            <svg class="nav-item__icon--indigo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.7-.8L3 21l1.9-4.3A8.4 8.4 0 1 1 21 11.5Z"/></svg>
+            Jimi 助手
+          </button>
+          <button class="nav-item" type="button" data-nav="账本日历">
+            <svg class="nav-item__icon--green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M3 10h18"/></svg>
+            账本日历
+          </button>
+          <button class="nav-item" type="button" data-nav="数据分析">
+            <svg class="nav-item__icon--purple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-3"/></svg>
+            数据分析
+          </button>
+          <button class="nav-item" type="button" data-nav="流水管理">
+            <svg class="nav-item__icon--green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/><path d="M17 18h3"/></svg>
+            流水管理
+          </button>
+          <button class="nav-item" type="button" data-nav="预算管理">
+            <svg class="nav-item__icon--red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            预算管理
+          </button>
+        </nav>
+      </div>
+    </aside>
+
+    <div class="modal-backdrop" id="flowModal" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="flowModalTitle">
+        <header class="modal__header">
+          <div>
+            <p class="modal__eyebrow">记米粒 · 流水</p>
+            <h2 class="modal__title" id="flowModalTitle">新增流水</h2>
+          </div>
+          <button class="icon-button" type="button" id="closeModal" aria-label="关闭弹窗">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </header>
+        <form id="flowForm" class="modal__body" novalidate>
+          <div class="field-row">
+            <div class="field">
+              <label for="flowDay">日期</label>
+              <input id="flowDay" name="day" type="date" required min="2026-06-01" max="2026-11-30" />
+            </div>
+            <div class="field">
+              <label for="flowAccount">资金账户</label>
+              <select id="flowAccount" name="account"></select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="flowMoney">金额</label>
+            <div class="amount-input">
+              <span>¥</span>
+              <input id="flowMoney" name="money" type="text" inputmode="decimal" placeholder="0.00" aria-describedby="moneyError" />
+            </div>
+            <span class="field-error" id="moneyError" hidden>请输入大于 0 的金额</span>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="flowType">流水类型</label>
+              <select id="flowType" name="flowType">
+                <option value="支出">支出</option>
+                <option value="收入">收入</option>
+                <option value="不计收支">不计收支</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="flowCategory">分类</label>
+              <select id="flowCategory" name="industryType"></select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="flowNote">备注</label>
+            <textarea id="flowNote" name="description" placeholder="添加备注（可选）"></textarea>
+          </div>
+        </form>
+        <footer class="modal__footer">
+          <button class="button button--secondary" type="button" id="cancelModal">取消</button>
+          <button class="button button--primary" type="button" id="saveFlow">保存</button>
+        </footer>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      (() => {
+        const MOCK_TODAY = '2026-11-26';
+        const CURRENT_MONTH = '2026-11';
+        const MONTHS = ['2026-06', '2026-07', '2026-08', '2026-09', '2026-10', '2026-11'];
+
+        const TREND_BASE = {
+          '2026-06': { inSum: 18500, outSum: 5200 },
+          '2026-07': { inSum: 18500, outSum: 4300 },
+          '2026-08': { inSum: 18500, outSum: 6100 },
+          '2026-09': { inSum: 0, outSum: 0 },
+          '2026-10': { inSum: 0, outSum: 0 },
+          '2026-11': { inSum: 0, outSum: 0 },
+        };
+
+        const MONTH_DATA = {
+          '2026-11': {
+            budget: 8000,
+            flows: [
+              flow(1, '2026-11-01', '支出', '居住', '房租', '招商银行卡', 3200),
+              flow(2, '2026-11-02', '支出', '餐饮', '午餐 · 公司楼下', '微信支付', 32.5),
+              flow(3, '2026-11-03', '支出', '交通', '地铁通勤', '支付宝', 6),
+              flow(4, '2026-11-05', '支出', '购物', '换季添置衣物', '信用卡', 268),
+              flow(5, '2026-11-06', '支出', '餐饮', '朋友聚餐', '微信支付', 48),
+              flow(6, '2026-11-08', '支出', '娱乐', '电影票', '支付宝', 45),
+              flow(7, '2026-11-10', '收入', '工资', '本月工资', '招商银行卡', 18500),
+              flow(8, '2026-11-12', '支出', '餐饮', '早餐和咖啡', '微信支付', 26),
+              flow(9, '2026-11-15', '支出', '医疗', '常用药补给', '支付宝', 86),
+              flow(10, '2026-11-18', '支出', '教育', '在线课程', '支付宝', 199),
+              flow(11, '2026-11-20', '支出', '餐饮', '周末早午餐', '微信支付', 68),
+              flow(12, '2026-11-22', '支出', '交通', '打车回家', '支付宝', 12),
+              flow(13, '2026-11-24', '支出', '餐饮', '水果和酸奶', '微信支付', 35.8),
+              flow(14, '2026-11-25', '收入', '奖金', '季度奖金', '招商银行卡', 2000),
+              flow(15, '2026-11-26', '支出', '餐饮', '午餐 · 公司楼下', '微信支付', 32.5),
+            ],
+          },
+          '2026-10': {
+            budget: 8000,
+            flows: [
+              flow(21, '2026-10-01', '支出', '居住', '房租', '招商银行卡', 3200),
+              flow(22, '2026-10-04', '支出', '餐饮', '工作日晚餐', '微信支付', 42),
+              flow(23, '2026-10-07', '支出', '购物', '无线耳机', '信用卡', 399),
+              flow(24, '2026-10-09', '支出', '交通', '地铁通勤', '支付宝', 6),
+              flow(25, '2026-10-10', '收入', '工资', '本月工资', '招商银行卡', 18500),
+              flow(26, '2026-10-11', '支出', '娱乐', 'livehouse 演出', '支付宝', 120),
+              flow(27, '2026-10-14', '支出', '餐饮', '朋友聚餐', '微信支付', 58),
+              flow(28, '2026-10-16', '支出', '医疗', '体检自费项目', '招商银行卡', 220),
+              flow(29, '2026-10-19', '支出', '教育', '专业书籍', '支付宝', 299),
+              flow(30, '2026-10-21', '支出', '餐饮', '午餐', '微信支付', 36),
+              flow(31, '2026-10-26', '收入', '理财', '基金分红', '招商银行卡', 320),
+              flow(32, '2026-10-28', '支出', '餐饮', '朋友聚餐', '微信支付', 58),
+            ],
+          },
+          '2026-09': {
+            budget: 7000,
+            flows: [
+              flow(41, '2026-09-01', '支出', '居住', '房租', '招商银行卡', 3200),
+              flow(42, '2026-09-03', '支出', '餐饮', '早餐和午餐', '微信支付', 38),
+              flow(43, '2026-09-06', '支出', '购物', '家居用品', '信用卡', 158),
+              flow(44, '2026-09-08', '支出', '交通', '地铁通勤', '支付宝', 6),
+              flow(45, '2026-09-10', '收入', '工资', '本月工资', '招商银行卡', 18500),
+              flow(46, '2026-09-13', '支出', '娱乐', '周末展览', '支付宝', 68),
+              flow(47, '2026-09-17', '支出', '餐饮', '晚餐', '微信支付', 52),
+              flow(48, '2026-09-20', '支出', '教育', '线上课程', '支付宝', 199),
+              flow(49, '2026-09-24', '收入', '兼职', '周末兼职', '支付宝', 1500),
+            ],
+          },
+        };
+
+        const CATEGORY_STYLES = {
+          餐饮: { color: '#F59E0B', tint: '#FFFBEB' },
+          交通: { color: '#0EA5E9', tint: '#F0F9FF' },
+          购物: { color: '#F43F5E', tint: '#FFF1F2' },
+          居住: { color: '#6366F1', tint: '#EEF2FF' },
+          娱乐: { color: '#EC4899', tint: '#FDF2F8' },
+          医疗: { color: '#EF4444', tint: '#FEF2F2' },
+          教育: { color: '#06B6D4', tint: '#ECFEFF' },
+          其他: { color: '#94A3B8', tint: '#F8FAFC' },
+          工资: { color: '#3B82F6', tint: '#EFF6FF' },
+          奖金: { color: '#6366F1', tint: '#EEF2FF' },
+          理财: { color: '#10B981', tint: '#ECFDF5' },
+          兼职: { color: '#84CC16', tint: '#F7FEE7' },
+          转账: { color: '#64748B', tint: '#F8FAFC' },
+          还款: { color: '#64748B', tint: '#F8FAFC' },
+        };
+
+        const CATEGORY_OPTIONS = {
+          支出: ['餐饮', '交通', '购物', '居住', '娱乐', '医疗', '教育', '其他'],
+          收入: ['工资', '奖金', '理财', '兼职', '其他'],
+          不计收支: ['转账', '还款', '其他'],
+        };
+
+        const ACCOUNTS = ['微信支付', '支付宝', '招商银行卡', '信用卡', '现金'];
+
+        let selectedMonth = CURRENT_MONTH;
+        let editingFlow = null;
+        let editingFlowOriginalMonth = null;
+        let toastTimer = null;
+
+        const els = {
+          monthLabel: document.getElementById('monthLabel'),
+          prevMonth: document.getElementById('prevMonth'),
+          nextMonth: document.getElementById('nextMonth'),
+          backToCurrent: document.getElementById('backToCurrent'),
+          summaryGrid: document.getElementById('summaryGrid'),
+          budgetCard: document.getElementById('budgetCard'),
+          recentFlows: document.getElementById('recentFlows'),
+          recentSubtitle: document.getElementById('recentSubtitle'),
+          breakdown: document.getElementById('breakdown'),
+          trend: document.getElementById('trend'),
+          modal: document.getElementById('flowModal'),
+          modalTitle: document.getElementById('flowModalTitle'),
+          form: document.getElementById('flowForm'),
+          flowDay: document.getElementById('flowDay'),
+          flowMoney: document.getElementById('flowMoney'),
+          flowAccount: document.getElementById('flowAccount'),
+          flowType: document.getElementById('flowType'),
+          flowCategory: document.getElementById('flowCategory'),
+          flowNote: document.getElementById('flowNote'),
+          moneyError: document.getElementById('moneyError'),
+          toast: document.getElementById('toast'),
+          themeButton: document.getElementById('themeButton'),
+          themeIcon: document.getElementById('themeIcon'),
+          menuButton: document.getElementById('menuButton'),
+          mobileSidebar: document.getElementById('mobileSidebar'),
+          drawerBackdrop: document.getElementById('drawerBackdrop'),
+          closeMenu: document.getElementById('closeMenu'),
+        };
+
+        function flow(id, day, flowType, industryType, name, account, money) {
+          return { id, day, flowType, industryType, name, account, money };
+        }
+
+        function getMonthData(month) {
+          if (MONTH_DATA[month]) {
+            return { ...MONTH_DATA[month], flows: [...MONTH_DATA[month].flows] };
+          }
+          return { budget: null, flows: [], baseline: TREND_BASE[month] || { inSum: 0, outSum: 0 } };
+        }
+
+        function getBaseline(month) {
+          const data = getMonthData(month);
+          return data.baseline || { inSum: 0, outSum: 0 };
+        }
+
+        function summarize(month) {
+          const data = getMonthData(month);
+          const baseline = getBaseline(month);
+          let totalIn = baseline.inSum;
+          let totalOut = baseline.outSum;
+          let notInOut = 0;
+          let count = 0;
+          for (const item of data.flows) {
+            count += 1;
+            if (item.flowType === '收入') totalIn += item.money;
+            else if (item.flowType === '支出') totalOut += item.money;
+            else if (item.flowType === '不计收支') notInOut += item.money;
+          }
+          return {
+            totalIn: round2(totalIn),
+            totalOut: round2(totalOut),
+            net: round2(totalIn - totalOut),
+            notInOut: round2(notInOut),
+            count,
+          };
+        }
+
+        function getRecentFlows(month) {
+          return getMonthData(month)
+            .flows.slice()
+            .sort((a, b) => (a.day === b.day ? b.id - a.id : a.day < b.day ? 1 : -1))
+            .slice(0, 5);
+        }
+
+        function getBreakdown(month) {
+          const totals = new Map();
+          for (const item of getMonthData(month).flows) {
+            if (item.flowType !== '支出') continue;
+            const key = item.industryType || '其他';
+            totals.set(key, round2((totals.get(key) || 0) + item.money));
+          }
+          const total = [...totals.values()].reduce((sum, value) => sum + value, 0);
+          return [...totals.entries()]
+            .map(([name, value]) => ({
+              name,
+              value,
+              share: total > 0 ? value / total : 0,
+              ...(CATEGORY_STYLES[name] || CATEGORY_STYLES['其他']),
+            }))
+            .sort((a, b) => b.value - a.value);
+        }
+
+        function getTrend() {
+          return MONTHS.map((month) => {
+            const data = getMonthData(month);
+            const baseline = getBaseline(month);
+            let inSum = baseline.inSum;
+            let outSum = baseline.outSum;
+            for (const item of data.flows) {
+              if (item.flowType === '收入') inSum += item.money;
+              else if (item.flowType === '支出') outSum += item.money;
+            }
+            return { month, inSum: round2(inSum), outSum: round2(outSum) };
+          });
+        }
+
+        function round2(value) {
+          return Math.round(value * 100) / 100;
+        }
+
+        function formatMoney(value) {
+          return `¥${Number(value).toLocaleString('zh-CN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`;
+        }
+
+        function formatShare(share) {
+          if (share <= 0) return '0%';
+          if (share < 0.01) return '<1%';
+          return `${Math.round(share * 100)}%`;
+        }
+
+        function formatMonth(month) {
+          const [year, monthNumber] = month.split('-');
+          return `${year}年${Number(monthNumber)}月`;
+        }
+
+        function formatMonthShort(month) {
+          return `${Number(month.split('-')[1])}月`;
+        }
+
+        function formatDay(day) {
+          const [, month, date] = day.split('-');
+          return `${Number(month)}月${Number(date)}日`;
+        }
+
+        function escapeHtml(value) {
+          return String(value)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+        }
+
+        function renderSummary(summary) {
+          const cards = [
+            {
+              label: '总收入',
+              value: summary.totalIn,
+              hint: `本月 ${summary.count} 笔流水`,
+              icon: 'income',
+              tone: 'blue',
+              className: 'text-income',
+            },
+            {
+              label: '总支出',
+              value: summary.totalOut,
+              hint: '不含不计收支',
+              icon: 'expense',
+              tone: 'red',
+              className: 'text-expense',
+            },
+            {
+              label: '净收入',
+              value: summary.net,
+              hint: '总收入 − 总支出',
+              icon: 'net',
+              tone: 'indigo',
+              className: 'text-income',
+            },
+            {
+              label: '不计收支',
+              value: summary.notInOut,
+              hint: '单独展示，不计入净收入',
+              icon: 'neutral',
+              tone: 'muted',
+              className: 'text-muted',
+            },
+          ];
+          const icons = {
+            income:
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 7 7 17"/><path d="M16 17H7V8"/></svg>',
+            expense:
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>',
+            net:
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"/><path d="M5 8h14"/><path d="M7 16h10"/></svg>',
+            neutral:
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>',
+          };
+          els.summaryGrid.innerHTML = cards
+            .map(
+              (card) => `
+              <article class="summary-card">
+                <span class="summary-card__icon summary-card__icon--${card.tone}">${icons[card.icon]}</span>
+                <div class="summary-card__body">
+                  <p class="summary-card__label">${card.label}</p>
+                  <p class="summary-card__value ${card.className}">${formatMoney(card.value)}</p>
+                  <p class="summary-card__hint">${card.hint}</p>
+                </div>
+              </article>`,
+            )
+            .join('');
+        }
+
+        function renderBudget(month, summary) {
+          const data = getMonthData(month);
+          if (!data.budget) {
+            els.budgetCard.innerHTML = `
+              <div class="card-head">
+                <div><h2>本月预算</h2><p>${formatMonth(month)}</p></div>
+                <button class="button button--ghost" type="button" data-nav="预算管理">去设置</button>
+              </div>
+              <div class="empty">
+                <span class="empty__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                </span>
+                <strong>未设置预算</strong>
+                <p>设置本月预算后，这里会显示已用、剩余与进度。</p>
+                <button class="button button--secondary" type="button" data-nav="预算管理">去设置预算</button>
+              </div>`;
+            return;
+          }
+          const used = summary.totalOut;
+          const budget = data.budget;
+          const remaining = round2(budget - used);
+          const percent = budget > 0 ? Math.round((used / budget) * 100) : 0;
+          const over = remaining < 0;
+          const daysInMonth = new Date(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0).getDate();
+          const daysRemaining =
+            month === CURRENT_MONTH
+              ? Math.max(daysInMonth - Number(MOCK_TODAY.slice(8, 10)), 1)
+              : 0;
+          const dailyAvailable =
+            daysRemaining > 0 ? round2(Math.max(remaining, 0) / daysRemaining) : 0;
+          const budgetNote =
+            month === CURRENT_MONTH
+              ? `<div class="budget-card__note"><span>本月还剩 ${daysRemaining} 天</span><strong>${
+                  over ? '已超支，建议调整预算' : `日均可用 ${formatMoney(dailyAvailable)}`
+                }</strong></div>`
+              : '<div class="budget-card__note"><span>该月已结束</span><strong>预算已结算</strong></div>';
+          els.budgetCard.innerHTML = `
+            <div class="card-head">
+              <div><h2>本月预算</h2><p>${formatMonth(month)} · 已用 ${formatMoney(used)}</p></div>
+              <button class="button button--ghost" type="button" data-nav="预算管理">调整</button>
+            </div>
+            <div class="budget-card__top">
+              <div class="budget-card__remaining">
+                ${over ? '-' : ''}${formatMoney(Math.abs(remaining))}
+                <small>${over ? '已超支' : '剩余'}</small>
+              </div>
+              <span class="budget-card__percent">${percent}%</span>
+            </div>
+            <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(percent, 100)}" aria-label="预算使用进度">
+              <div class="progress__bar ${over ? 'progress__bar--over' : ''}" style="width:${Math.min(percent, 100)}%"></div>
+            </div>
+            <div class="budget-card__meta">
+              <span>预算 <strong>${formatMoney(budget)}</strong></span>
+              <span>已用 <strong>${formatMoney(used)}</strong></span>
+            </div>
+            ${budgetNote}`;
+        }
+
+        function renderRecent(month) {
+          const flows = getRecentFlows(month);
+          els.recentSubtitle.textContent = `${formatMonth(month)} · 最近 ${flows.length} 笔`;
+          if (flows.length === 0) {
+            els.recentFlows.innerHTML = `
+              <div class="empty">
+                <span class="empty__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/></svg>
+                </span>
+                <strong>本月还没有流水</strong>
+                <p>记下第一笔，概览会自动更新。</p>
+                <button class="button button--primary" type="button" data-action="add">记一笔</button>
+              </div>`;
+            return;
+          }
+          els.recentFlows.innerHTML = `
+            <div class="flow-list">
+              ${flows
+                .map((item) => {
+                  const style = CATEGORY_STYLES[item.industryType] || CATEGORY_STYLES['其他'];
+                  const isIncome = item.flowType === '收入';
+                  const sign = isIncome ? '+' : item.flowType === '支出' ? '-' : '';
+                  return `
+                    <button class="flow-row" type="button" data-flow-id="${item.id}">
+                      <span class="category-badge" style="color:${style.color};background:${style.tint}">${escapeHtml(item.industryType.slice(0, 1))}</span>
+                      <span class="flow-row__main">
+                        <span class="flow-row__title">${escapeHtml(item.name)}</span>
+                        <span class="flow-row__meta">${escapeHtml(item.industryType)} · ${escapeHtml(item.account)} · ${formatDay(item.day)}</span>
+                      </span>
+                      <span class="flow-row__amount ${isIncome ? 'flow-row__amount--income' : ''}">${sign}${formatMoney(item.money)}</span>
+                      <svg class="flow-row__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                    </button>`;
+                })
+                .join('')}
+            </div>`;
+        }
+
+        function renderBreakdown(month, summary) {
+          const items = getBreakdown(month);
+          if (items.length === 0) {
+            els.breakdown.innerHTML = `
+              <div class="empty">
+                <span class="empty__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-3"/></svg>
+                </span>
+                <strong>本月暂无支出</strong>
+                <p>记一笔支出后，这里会显示分类占比。</p>
+              </div>`;
+            return;
+          }
+          const total = items.reduce((sum, item) => sum + item.value, 0);
+          const radius = 62;
+          const circumference = 2 * Math.PI * radius;
+          let offset = 0;
+          const segments = items
+            .map((item) => {
+              const length = (item.value / total) * circumference;
+              const visible = Math.max(length - 3, 0);
+              const segment = `<circle cx="90" cy="90" r="${radius}" fill="none" stroke="${item.color}" stroke-width="22" stroke-dasharray="${visible} ${circumference}" stroke-dashoffset="${-offset}" stroke-linecap="round" transform="rotate(-90 90 90)"></circle>`;
+              offset += length;
+              return segment;
+            })
+            .join('');
+          els.breakdown.innerHTML = `
+            <div class="breakdown-layout">
+              <div class="donut" role="img" aria-label="支出构成，总计 ${formatMoney(total)}">
+                <svg viewBox="0 0 180 180" aria-hidden="true">
+                  <circle cx="90" cy="90" r="${radius}" fill="none" stroke="rgb(var(--color-surface-muted))" stroke-width="22"></circle>
+                  ${segments}
+                </svg>
+                <div class="donut__center">
+                  <span>本月支出</span>
+                  <strong>${formatMoney(summary.totalOut)}</strong>
+                </div>
+              </div>
+              <ul class="breakdown-legend">
+                ${items
+                  .map(
+                    (item) => `
+                    <li>
+                      <i class="legend-dot" style="background:${item.color}"></i>
+                      <span class="breakdown-legend__name">${escapeHtml(item.name)}</span>
+                      <span class="breakdown-legend__share">${formatShare(item.share)}</span>
+                      <span class="breakdown-legend__value">${formatMoney(item.value)}</span>
+                    </li>`,
+                  )
+                  .join('')}
+              </ul>
+            </div>`;
+        }
+
+        function renderTrend() {
+          const trend = getTrend();
+          const width = 560;
+          const height = 220;
+          const padding = { top: 18, right: 8, bottom: 28, left: 8 };
+          const chartWidth = width - padding.left - padding.right;
+          const chartHeight = height - padding.top - padding.bottom;
+          const maxValue = Math.max(...trend.map((item) => Math.max(item.inSum, item.outSum)), 1);
+          const groupWidth = chartWidth / trend.length;
+          const barWidth = Math.min(18, groupWidth * 0.28);
+          const gap = 4;
+          const gridLines = [0.25, 0.5, 0.75, 1]
+            .map((ratio) => {
+              const y = padding.top + chartHeight * (1 - ratio);
+              return `<line x1="${padding.left}" x2="${width - padding.right}" y1="${y}" y2="${y}" stroke="var(--chart-grid)" stroke-dasharray="3 5"></line>`;
+            })
+            .join('');
+          const bars = trend
+            .map((item, index) => {
+              const groupX = padding.left + groupWidth * index + groupWidth / 2;
+              const incomeHeight = (item.inSum / maxValue) * chartHeight;
+              const expenseHeight = (item.outSum / maxValue) * chartHeight;
+              const baseline = padding.top + chartHeight;
+              const tooltip = `${formatMonth(item.month)} · 收入 ${formatMoney(item.inSum)} / 支出 ${formatMoney(item.outSum)}`;
+              return `
+                <g>
+                  <rect x="${groupX - barWidth - gap / 2}" y="${baseline - incomeHeight}" width="${barWidth}" height="${Math.max(incomeHeight, 2)}" rx="${barWidth / 2}" fill="var(--chart-income)"><title>${tooltip}</title></rect>
+                  <rect x="${groupX + gap / 2}" y="${baseline - expenseHeight}" width="${barWidth}" height="${Math.max(expenseHeight, 2)}" rx="${barWidth / 2}" fill="var(--chart-expense)"><title>${tooltip}</title></rect>
+                  <text x="${groupX}" y="${height - 8}" text-anchor="middle" class="trend-label">${formatMonthShort(item.month)}</text>
+                </g>`;
+            })
+            .join('');
+          els.trend.innerHTML = `
+            <div class="trend-chart">
+              <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="近 6 个月收入与支出趋势">
+                ${gridLines}
+                ${bars}
+              </svg>
+            </div>`;
+        }
+
+        function render() {
+          const month = selectedMonth;
+          const summary = summarize(month);
+          els.monthLabel.textContent = formatMonth(month);
+          els.prevMonth.disabled = month <= MONTHS[0];
+          els.nextMonth.disabled = month >= CURRENT_MONTH;
+          els.backToCurrent.hidden = month === CURRENT_MONTH;
+          renderSummary(summary);
+          renderBudget(month, summary);
+          renderRecent(month);
+          renderBreakdown(month, summary);
+          renderTrend();
+        }
+
+        function changeMonth(delta) {
+          const index = MONTHS.indexOf(selectedMonth);
+          const nextIndex = Math.min(Math.max(index + delta, 0), MONTHS.length - 1);
+          if (nextIndex === index) return;
+          selectedMonth = MONTHS[nextIndex];
+          render();
+        }
+
+        function showToast(message) {
+          els.toast.textContent = message;
+          els.toast.classList.add('is-visible');
+          if (toastTimer) window.clearTimeout(toastTimer);
+          toastTimer = window.setTimeout(() => {
+            els.toast.classList.remove('is-visible');
+            toastTimer = null;
+          }, 2400);
+        }
+
+        function openFlowModal(item) {
+          editingFlow = item || null;
+          editingFlowOriginalMonth = item ? item.day.slice(0, 7) : null;
+          els.modalTitle.textContent = item ? '修改流水' : '新增流水';
+          document.getElementById('saveFlow').textContent = item ? '保存修改' : '保存';
+          els.form.reset();
+          els.flowDay.value = item ? item.day : MOCK_TODAY;
+          els.flowMoney.value = item ? String(item.money) : '';
+          els.flowType.value = item ? item.flowType : '支出';
+          updateCategoryOptions(item ? item.industryType : '餐饮');
+          els.flowAccount.innerHTML = ACCOUNTS.map(
+            (account) => `<option value="${account}">${account}</option>`,
+          ).join('');
+          els.flowAccount.value = item ? item.account : '微信支付';
+          els.flowNote.value = item ? item.name : '';
+          els.moneyError.hidden = true;
+          els.flowMoney.removeAttribute('aria-invalid');
+          els.modal.hidden = false;
+          document.body.style.overflow = 'hidden';
+          window.setTimeout(() => els.flowMoney.focus(), 60);
+        }
+
+        function closeFlowModal() {
+          els.modal.hidden = true;
+          document.body.style.overflow = '';
+          editingFlow = null;
+          editingFlowOriginalMonth = null;
+        }
+
+        function updateCategoryOptions(selected) {
+          const type = els.flowType.value;
+          const options = CATEGORY_OPTIONS[type] || CATEGORY_OPTIONS['支出'];
+          els.flowCategory.innerHTML = options
+            .map((option) => `<option value="${option}">${option}</option>`)
+            .join('');
+          if (selected && options.includes(selected)) {
+            els.flowCategory.value = selected;
+          }
+        }
+
+        function saveFlow() {
+          const money = Number(els.flowMoney.value);
+          if (!Number.isFinite(money) || money <= 0) {
+            els.moneyError.hidden = false;
+            els.flowMoney.setAttribute('aria-invalid', 'true');
+            els.flowMoney.focus();
+            showToast('请填写必要信息');
+            return;
+          }
+          const type = els.flowType.value;
+          const category = els.flowCategory.value;
+          const account = els.flowAccount.value;
+          const day = els.flowDay.value || MOCK_TODAY;
+          const note = els.flowNote.value.trim();
+          const month = day.slice(0, 7);
+          if (!MONTH_DATA[month]) {
+            MONTH_DATA[month] = { budget: null, flows: [], baseline: TREND_BASE[month] || { inSum: 0, outSum: 0 } };
+          }
+          const data = MONTH_DATA[month];
+          if (editingFlow) {
+            const updated = {
+              ...editingFlow,
+              day,
+              flowType: type,
+              industryType: category,
+              name: note || category,
+              account,
+              money: round2(money),
+            };
+            if (
+              editingFlowOriginalMonth &&
+              editingFlowOriginalMonth !== month &&
+              MONTH_DATA[editingFlowOriginalMonth]
+            ) {
+              MONTH_DATA[editingFlowOriginalMonth].flows = MONTH_DATA[editingFlowOriginalMonth].flows.filter(
+                (item) => item.id !== editingFlow.id,
+              );
+              data.flows.push(updated);
+            } else {
+              const index = data.flows.findIndex((item) => item.id === editingFlow.id);
+              if (index >= 0) data.flows[index] = updated;
+            }
+            showToast('修改成功!');
+          } else {
+            const nextId = Math.max(0, ...data.flows.map((item) => item.id), 0) + 1;
+            data.flows.push({
+              id: nextId,
+              day,
+              flowType: type,
+              industryType: category,
+              name: note || category,
+              account,
+              money: round2(money),
+            });
+            showToast('新增成功!');
+          }
+          selectedMonth = month;
+          closeFlowModal();
+          render();
+        }
+
+        function setTheme(theme) {
+          document.documentElement.dataset.theme = theme;
+          localStorage.setItem('jimily-prototype-theme', theme);
+          const isDark = theme === 'dark';
+          els.themeButton.setAttribute('aria-label', isDark ? '切换浅色模式' : '切换深色模式');
+          els.themeIcon.innerHTML = isDark
+            ? '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/>'
+            : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m17.7 17.7 1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m4.9 19.1 1.4-1.4"/><path d="m17.7 6.3 1.4-1.4"/>';
+        }
+
+        function openMenu() {
+          els.mobileSidebar.classList.add('is-open');
+          els.drawerBackdrop.classList.add('is-open');
+        }
+
+        function closeMenu() {
+          els.mobileSidebar.classList.remove('is-open');
+          els.drawerBackdrop.classList.remove('is-open');
+        }
+
+        function handleNav(label) {
+          if (label === '概览') {
+            closeMenu();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+          }
+          showToast(`原型仅展示概览页，实际入口为「${label}」`);
+          closeMenu();
+        }
+
+        els.prevMonth.addEventListener('click', () => changeMonth(-1));
+        els.nextMonth.addEventListener('click', () => changeMonth(1));
+        els.backToCurrent.addEventListener('click', () => {
+          selectedMonth = CURRENT_MONTH;
+          render();
+        });
+        els.themeButton.addEventListener('click', () => {
+          setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+        });
+        els.menuButton.addEventListener('click', openMenu);
+        els.closeMenu.addEventListener('click', closeMenu);
+        els.drawerBackdrop.addEventListener('click', closeMenu);
+        els.flowType.addEventListener('change', () => updateCategoryOptions());
+        document.getElementById('closeModal').addEventListener('click', closeFlowModal);
+        document.getElementById('cancelModal').addEventListener('click', closeFlowModal);
+        document.getElementById('saveFlow').addEventListener('click', saveFlow);
+        els.form.addEventListener('submit', (event) => {
+          event.preventDefault();
+          saveFlow();
+        });
+        els.flowMoney.addEventListener('input', () => {
+          els.moneyError.hidden = true;
+          els.flowMoney.removeAttribute('aria-invalid');
+        });
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && !els.modal.hidden) {
+            closeFlowModal();
+          }
+        });
+        document.addEventListener('click', (event) => {
+          const addButton = event.target.closest('[data-action="add"]');
+          if (addButton) {
+            openFlowModal(null);
+            return;
+          }
+          const flowButton = event.target.closest('[data-flow-id]');
+          if (flowButton) {
+            const id = Number(flowButton.getAttribute('data-flow-id'));
+            const item = getMonthData(selectedMonth).flows.find((flowItem) => flowItem.id === id);
+            if (item) openFlowModal(item);
+            return;
+          }
+          const navButton = event.target.closest('[data-nav]');
+          if (navButton) {
+            handleNav(navButton.getAttribute('data-nav'));
+          }
+        });
+
+        const savedTheme = localStorage.getItem('jimily-prototype-theme');
+        setTheme(savedTheme === 'dark' ? 'dark' : 'light');
+        render();
+      })();
+    </script>
+  </body>
+</html>
