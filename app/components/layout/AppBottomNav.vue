@@ -4,6 +4,7 @@ import {
   ChartBarIcon,
   ExclamationTriangleIcon,
   CurrencyDollarIcon,
+  HomeIcon,
 } from "@heroicons/vue/24/outline";
 
 interface NavItem {
@@ -23,6 +24,12 @@ const emit = defineEmits<{
 }>();
 
 const bottomNavItems: NavItem[] = [
+  {
+    title: "概览",
+    path: "/user/overview",
+    icon: HomeIcon,
+    color: "text-primary-500",
+  },
   {
     title: "预算",
     path: "/user/budget",
@@ -49,6 +56,12 @@ const bottomNavItems: NavItem[] = [
   },
 ];
 
+/** 规范化当前路径（父组件传入 route.path.slice(1)，如 "user/flows"） */
+const normalizedCurrentPath = computed(() => {
+  const p = props.currentPath?.trim() || "";
+  return p.startsWith("/") ? p : p ? `/${p}` : "";
+});
+
 const handleNavigate = (path: string) => {
   // emit("navigate", path);
   navigateTo(path);
@@ -59,14 +72,14 @@ const handleNavigate = (path: string) => {
   <nav
     class="fixed bottom-0 left-0 right-0 bg-surface border-t border-border z-40 lg:hidden"
   >
-    <div class="grid grid-cols-4 h-16 bg-surface-muted">
+    <div class="grid grid-cols-5 h-16 bg-surface-muted">
       <button
         v-for="item in bottomNavItems"
         :key="item.path"
         @click="handleNavigate(item.path)"
         :class="[
           'flex flex-col items-center justify-center space-y-1 transition-colors duration-200 text-primary-600',
-          currentPath == item.path
+          normalizedCurrentPath === item.path
             ? ' bg-primary-500/20 font-bold'
             : 'font-medium',
         ]"

@@ -19,6 +19,7 @@ import {
   ChatBubbleLeftRightIcon,
   CreditCardIcon,
   KeyIcon,
+  HomeIcon,
 } from "@heroicons/vue/24/outline";
 
 interface Menu {
@@ -51,6 +52,12 @@ const toggleTheme = () => {
 
 /** 普通用户菜单 */
 const userMenuItems: Menu[] = [
+  {
+    title: "概览",
+    path: "/user/overview",
+    icon: HomeIcon,
+    color: "text-primary-500",
+  },
   {
     title: "Jimi 助手",
     path: "/user/jimi",

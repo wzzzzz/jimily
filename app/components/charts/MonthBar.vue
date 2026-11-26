@@ -1,7 +1,7 @@
 <template>
   <div class="chart-common-container">
     <div
-      v-if="title || years.length > 0"
+      v-if="title || years.length > 0 || attributions.length > 0"
       class="relative w-full border-b border-border mb-2 h-12 md:mb-4"
     >
       <h4
@@ -27,7 +27,7 @@
           </option>
         </select>
         <select
-          v-if="years.length > 0"
+          v-if="years.length > 0 && !hasMonthRange"
           v-model="filterYear"
           @change="filterYearChange"
           class="min-w-24 md:min-w-32 px-2 py-1 md:px-3 md:py-2 border border-border rounded-md shadow-md bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -39,11 +39,29 @@
         </select>
       </div>
     </div>
-    <div v-show="noData" :style="`width: ${width}; height: ${height};`">
-      <h3 style="width: 100%; text-align: center; color: tomato">暂无数据</h3>
+    <div
+      v-show="noData"
+      :style="`width: ${width}; height: ${height};`"
+      class="flex items-center justify-center"
+    >
+      <h3 class="text-lg font-medium text-red-500">{{ emptyText }}</h3>
     </div>
     <div
-      v-show="!noData"
+      v-show="loadError"
+      :style="`width: ${width}; height: ${height};`"
+      class="flex flex-col items-center justify-center"
+    >
+      <h3 class="text-sm font-medium text-red-500">加载失败</h3>
+      <button
+        type="button"
+        class="mt-2 rounded-md px-3 py-1 text-xs font-medium text-primary-600 hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-primary-500"
+        @click="retryQuery"
+      >
+        重试
+      </button>
+    </div>
+    <div
+      v-show="!noData && !loadError"
       :id="chartId"
       class="chart-content"
       :style="`width: ${width}; height: ${height};`"
@@ -82,11 +100,32 @@
 
 <script setup lang="ts">
 import * as echarts from "echarts";
-import { onMounted, ref } from "vue";
+import { nextTick, onMounted, ref, watch } from "vue";
 import type { CommonChartData, CommonSelectOption } from "~/utils/model";
 
+interface Props {
+  title?: string;
+  width?: string;
+  height?: string;
+  /** 可选：查询开始日期（YYYY-MM-DD） */
+  startDay?: string;
+  /** 可选：查询结束日期（YYYY-MM-DD） */
+  endDay?: string;
+  /** 可选：指定横轴月份（YYYY-MM 升序），缺失月份补 0；为空时保持原有全部月份行为 */
+  months?: string[];
+  /** 可选：空态文案 */
+  emptyText?: string;
+}
+
 // 使用 props 来接收外部传入的参数
-const { title, width, height } = defineProps(["title", "width", "height"]);
+const props = withDefaults(defineProps<Props>(), {
+  width: "100%",
+  height: "320px",
+  months: () => [],
+  emptyText: "暂无数据",
+});
+
+const hasMonthRange = computed(() => props.months.length > 0);
 
 // 生成唯一ID避免冲突
 const chartId = ref(`chartDiv-${Math.random().toString(36).substr(2, 9)}`);
@@ -96,6 +135,8 @@ const dataListIn: any[] = [];
 const notInOut: any[] = [];
 const xAxisList: any[] = [];
 const noData = ref(false);
+const loadError = ref(false);
+let querySeq = 0;
 
 const years = ref<CommonSelectOption[]>([]);
 const allData = ref<CommonChartData[]>([]);
@@ -254,15 +295,24 @@ const getAttributions = async () => {
 };
 
 const doQuery = () => {
-  const queryParams: any = {
-    
-  };
+  const seq = ++querySeq;
+  if (chart) chart.clear();
+  const queryParams: any = {};
+  if (props.startDay) {
+    queryParams.startDay = props.startDay;
+  }
+  if (props.endDay) {
+    queryParams.endDay = props.endDay;
+  }
   if (filterAttribution.value) {
     queryParams.attribution = filterAttribution.value;
   }
   doApi
     .post<CommonChartData[]>("api/entry/analytics/month", queryParams)
     .then((res) => {
+      // 只应用最新一次请求的结果，避免月份切换竞态
+      if (seq !== querySeq) return;
+      loadError.value = false;
       if (res) {
         if (res.length === 0) {
           allData.value = [];
@@ -270,6 +320,7 @@ const doQuery = () => {
           noData.value = true;
           return;
         }
+        noData.value = false;
         // 重置所有数据数组
         years.value = [];
         allData.value = res;
@@ -280,32 +331,44 @@ const doQuery = () => {
 
         const monthYears: string[] = [];
 
-        // 根据年份过滤条件决定使用哪些数据
-        let dataToProcess = res;
-        if (filterYear.value) {
-          dataToProcess = res.filter((d) => {
-            return d.type.startsWith(filterYear.value);
+        if (hasMonthRange.value) {
+          // 指定月份范围：按 months 顺序补 0，保证横轴连续
+          const dataMap = new Map(res.map((d) => [d.type, d]));
+          props.months.forEach((month) => {
+            const data = dataMap.get(month);
+            xAxisList.push(month);
+            dataListOut.push(Number(data?.outSum || 0).toFixed(2));
+            dataListIn.push(Number(data?.inSum || 0).toFixed(2));
+            notInOut.push(Number(data?.zeroSum || 0).toFixed(2));
+          });
+        } else {
+          // 根据年份过滤条件决定使用哪些数据
+          let dataToProcess = res;
+          if (filterYear.value) {
+            dataToProcess = res.filter((d) => {
+              return d.type.startsWith(filterYear.value);
+            });
+          }
+
+          // 填充数据
+          dataToProcess.forEach((data) => {
+            monthYears.push(data.type.split("-")[0]);
+            xAxisList.push(data.type);
+            dataListOut.push(Number(data.outSum).toFixed(2));
+            dataListIn.push(Number(data.inSum).toFixed(2));
+            notInOut.push(Number(data.zeroSum).toFixed(2));
+          });
+
+          // 去重年份列表（基于全部数据，而不是过滤后的数据）
+          const allMonthYears: string[] = [];
+          res.forEach((data) => {
+            allMonthYears.push(data.type.split("-")[0]);
+          });
+          const uniqueYears = Array.from(new Set(allMonthYears));
+          uniqueYears.forEach((year) => {
+            years.value.push({ title: year, value: year });
           });
         }
-
-        // 填充数据
-        dataToProcess.forEach((data) => {
-          monthYears.push(data.type.split("-")[0]);
-          xAxisList.push(data.type);
-          dataListOut.push(Number(data.outSum).toFixed(2));
-          dataListIn.push(Number(data.inSum).toFixed(2));
-          notInOut.push(Number(data.zeroSum).toFixed(2));
-        });
-
-        // 去重年份列表（基于全部数据，而不是过滤后的数据）
-        const allMonthYears: string[] = [];
-        res.forEach((data) => {
-          allMonthYears.push(data.type.split("-")[0]);
-        });
-        const uniqueYears = Array.from(new Set(allMonthYears));
-        uniqueYears.forEach((year) => {
-          years.value.push({ title: year, value: year });
-        });
 
         // 更新图表配置
         optionRef.value.series[0].data = dataListOut;
@@ -315,9 +378,29 @@ const doQuery = () => {
 
         // 使用 notMerge: true 完全替换图表数据，而不是合并
         chart.setOption(optionRef.value, { notMerge: true });
+        // 空态切换后容器可能从隐藏恢复，需要重新计算尺寸
+        nextTick(() => chart?.resize());
       }
+    })
+    .catch(() => {
+      if (seq !== querySeq) return;
+      loadError.value = true;
+      noData.value = false;
     });
 };
+
+const retryQuery = () => {
+  doQuery();
+};
+
+// 外部传入的月份范围/月份列表变化时重新查询（保持默认调用不传时的原有行为）
+watch(
+  () => [props.startDay, props.endDay, props.months],
+  () => {
+    doQuery();
+  },
+  { deep: true },
+);
 
 /**
  * 生成16进制随机颜色

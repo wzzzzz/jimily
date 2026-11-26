@@ -17,10 +17,24 @@
       :style="`width: ${width}; height: ${height};`"
       class="flex items-center justify-center"
     >
-      <h3 class="text-lg text-red-500 font-medium">暂无数据</h3>
+      <h3 class="text-lg text-red-500 font-medium">{{ emptyText }}</h3>
     </div>
     <div
-      v-show="!noData"
+      v-show="loadError"
+      :style="`width: ${width}; height: ${height};`"
+      class="flex flex-col items-center justify-center"
+    >
+      <h3 class="text-sm font-medium text-red-500">加载失败</h3>
+      <button
+        type="button"
+        class="mt-2 rounded-md px-3 py-1 text-xs font-medium text-primary-600 hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-primary-500"
+        @click="retryQuery"
+      >
+        重试
+      </button>
+    </div>
+    <div
+      v-show="!noData && !loadError"
       :id="chartId"
       :style="`width: ${width}; height: ${height};`"
     ></div>
@@ -58,7 +72,7 @@
 
 <script setup lang="ts">
 import * as echarts from "echarts";
-import { onMounted, ref, watch } from "vue";
+import { nextTick, onMounted, ref, watch } from "vue";
 import { dateFormater, miniFullscreen } from "@/utils/common";
 import { doApi } from "@/utils/api";
 import type { CommonChartData, CommonChartQuery } from "~/utils/model";
@@ -79,12 +93,16 @@ interface Props {
   seriesName?: string; // 新增：系列名称
   showLegend?: boolean; // 新增：是否显示图例
   queryField?: string; // 新增：点击时传递给FlowTable的查询字段名
+  maxItems?: number; // 可选：仅展示前 N 类，其余合并为「其他」；0 表示不限制
+  emptyText?: string; // 可选：空态文案
 }
 
 const props = withDefaults(defineProps<Props>(), {
   seriesName: "数据分析",
   showLegend: true,
   queryField: "industryType",
+  maxItems: 0,
+  emptyText: "暂无数据",
 });
 
 // 生成唯一ID避免冲突
@@ -99,6 +117,8 @@ const chartParam = ref<CommonChartQuery & { groupBy: string }>({
 
 const dataList: any[] = [];
 const noData = ref(false);
+const loadError = ref(false);
+let querySeq = 0;
 
 const optionRef = ref({
   tooltip: {
@@ -165,13 +185,31 @@ const optionRef = ref({
 let chartDiv: any;
 let chart: echarts.ECharts;
 
+/** 仅展示前 N 类，其余合并为「其他」 */
+const applyMaxItems = () => {
+  if (props.maxItems > 0 && dataList.length > props.maxItems) {
+    const kept = dataList.slice(0, props.maxItems);
+    const rest = dataList.slice(props.maxItems);
+    const restSum = rest.reduce(
+      (sum, item) => sum + Number(item.value || 0),
+      0,
+    );
+    dataList.length = 0;
+    dataList.push(...kept, { value: restSum.toFixed(2), name: "其他" });
+  }
+};
+
 const doQuery = (query: CommonChartQuery & { groupBy: string }) => {
+  const seq = ++querySeq;
+  if (chart) chart.clear();
   doApi
     .post<CommonChartData[]>("api/entry/analytics/common", {
-      
       ...query,
     })
     .then((res) => {
+      // 只应用最新一次请求的结果，避免月份切换竞态
+      if (seq !== querySeq) return;
+      loadError.value = false;
       if (res) {
         if (res.length === 0) {
           noData.value = true;
@@ -212,6 +250,8 @@ const doQuery = (query: CommonChartQuery & { groupBy: string }) => {
           });
         }
 
+        applyMaxItems();
+
         // 重新渲染图表
         optionRef.value.series[0].data = dataList;
         optionRef.value.legend.textStyle.color = isDark.value
@@ -224,8 +264,19 @@ const doQuery = (query: CommonChartQuery & { groupBy: string }) => {
         // 确保图表完全重新渲染
         chart.clear();
         chart.setOption(optionRef.value);
+        // 空态切换后容器可能从隐藏恢复，需要重新计算尺寸
+        nextTick(() => chart?.resize());
       }
+    })
+    .catch(() => {
+      if (seq !== querySeq) return;
+      loadError.value = true;
+      noData.value = false;
     });
+};
+
+const retryQuery = () => {
+  doQuery(chartParam.value);
 };
 
 const showLegend = ref(props.showLegend);
@@ -290,6 +341,8 @@ onMounted(() => {
   }
   chart = echarts.init(chartDiv);
   chart.on("click", function (param: any) {
+    // 「其他」为多分类合并项，无法用单一分类条件下钻
+    if (param.name === "其他") return;
     const d = param.data;
     const base: Record<string, unknown> = { ...chartParam.value };
     if (
