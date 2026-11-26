@@ -58,7 +58,7 @@
 | --- | --- |
 | 远程仓库 | `https://github.com/wzzzzz/jimily` |
 | 基线分支 | `main`（commit `98487d6`） |
-| 工作分支 | `feat/personal-ledger-prototype` |
+| 工作分支 | `feat/personal-ledger-prototype`（已推送，commit `e66952e`） |
 | 影响目录 | `app/pages/user/overview.client.vue`（新增）、`app/components/layout/AppSidebar.vue`、`app/components/layout/AppBottomNav.vue`、`docs/`、`design/`、`changelog/` |
 | 设计系统 | 沿用现有 Tailwind 语义色与默认白蓝主题（`app/utils/theme-presets.ts`），不新增独立设计系统 |
 | 禁止改动 | `.env`、`data/`、`prisma/migrations/**`、数据库备份、账单样例 |
