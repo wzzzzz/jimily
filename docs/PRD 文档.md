@@ -56,10 +56,12 @@
 
 | 项 | 值 |
 | --- | --- |
-| 远程仓库 | `https://github.com/wzzzzz/jimily` |
-| 基线分支 | `main`（commit `98487d6`） |
-| 工作分支 | `feat/personal-ledger-prototype`（已推送，commit `e66952e`） |
-| 影响目录 | `app/pages/user/overview.client.vue`（新增）、`app/components/layout/AppSidebar.vue`、`app/components/layout/AppBottomNav.vue`、`docs/`、`design/`、`changelog/` |
+| 交付仓库（本次） | Gitea `https://spsm9sokimvice60p00ls.apigateway-cn-beijing.volceapi.com/e2e-admin/test-public-repo.git` |
+| 应用源码（实现基线） | GitHub `https://github.com/wzzzzz/jimily`（现有 Jimily Nuxt 应用） |
+| 基线分支 | Gitea `main`（`394a8a4`）；Jimily `main`（`98487d6`） |
+| 工作分支 | Gitea `feat/personal-ledger-prototype`（已推送，commit `7b1d851`） |
+| 交付目录 | Gitea `docs/`、`design/`、`changelog/` |
+| 后续实现目录 | Jimily `app/pages/user/overview.client.vue`（新增）、`app/components/layout/AppSidebar.vue`、`app/components/layout/AppBottomNav.vue` |
 | 设计系统 | 沿用现有 Tailwind 语义色与默认白蓝主题（`app/utils/theme-presets.ts`），不新增独立设计系统 |
 | 禁止改动 | `.env`、`data/`、`prisma/migrations/**`、数据库备份、账单样例 |
 

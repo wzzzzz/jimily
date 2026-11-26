@@ -22,6 +22,7 @@
 
 ## 验证结果
 
+- Gitea 交付分支 `feat/personal-ledger-prototype` 已推送（commit `7b1d851`）。
 - 静态原型在 4173 端口可访问（HTTP 200）。
 - Chromium CDP 验证 390×844 无横向滚动；桌面 1440×1000 布局正常。
 - 深色模式、记一笔弹窗、月份切换、快速记账（Mock）均正常。
